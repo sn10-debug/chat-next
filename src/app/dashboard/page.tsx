@@ -11,21 +11,22 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-
 export default function Component() {
+
   const API_KEY="AIzaSyBU48uRkLp2Oz7tDU2aMa73g8BPE2-fjpo"
   const genAI = new GoogleGenerativeAI(API_KEY);
   let [selectedFile, setSelectedFile] = useState(null);
   let [readData, setReadData] = useState(null);
   let [summarizeData, setSummarizeData] = useState(null);
   let [textData, setTextData] = useState("The text output will be displayed here...");
-
+  let [audioSource, setAudioSource] = useState('');
+  
 
   const handleFileChange = (event:any) => {
     // Get the file from the event target (input element)
     const file = event.target.files[0]; // Assuming you want the first file
     setSelectedFile(file);
-};
+}; 
 
 const handleFileUpload = () => {
   // Implement file upload logic here
@@ -33,14 +34,42 @@ const handleFileUpload = () => {
   // Typically, you would send the file to a server here
 };
 
+const translateText = async (text:string) => {
+  const key = "f3a47cba04864b638e74f100019a703b";
+  const endpoint = "https://api.cognitive.microsofttranslator.com";
+  const location = "southeastasia";
 
+  try {
+      const response = await fetch(
+          `${endpoint}/translate?api-version=3.0&from=en&to=or`,
+          {
+              method: 'POST',
+              headers: {
+                  'Ocp-Apim-Subscription-Key': key,
+                  'Ocp-Apim-Subscription-Region': location,
+                  'Content-type': 'application/json',
+              },
+              body: JSON.stringify([{ text: text }])
+          }
+      );
+
+      if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return result[0]['translations'][0]['text'];
+  } catch (error) {
+      console.error(`Translation error: ${error}`);
+  }
+};
 
 
 
 // Converts a File object to a GoogleGenerativeAI.Part object.
 
 
-async function run(mode) {
+async function run(mode:any) {
   // For text-and-images input (multimodal), use the gemini-pro-vision model
 
   async function fileToGenerativePart(file: File) {
@@ -72,7 +101,31 @@ let prompt="";
   const result = await model.generateContent([prompt, ...imageParts]);
   const response = await result.response;
   const text = response.text();
-  setTextData(text);
+  const translatedText = await translateText(text);
+  setTextData(translatedText);
+//   const responseFromFlask = await fetch('http://127.0.0.1:5000/process_form', {
+//     method: 'POST',
+//     headers: {
+//       'Content-Type': 'application/json',
+//     },
+//     body: JSON.stringify({
+//       sample_text: text,
+//       gender: 'male', // Replace 'male' with the actual gender
+//     }),
+//  });
+
+ // Check if the request was successful
+//  if (!responseFromFlask.ok) {
+//     throw new Error(`HTTP error! status: ${responseFromFlask.status}`);
+//  }
+
+ // Fetch the audio file
+//  const audioResponse = await fetch('http://127.0.0.1:5000/get_audio');
+//  const blob = await audioResponse.blob();
+//  const url = URL.createObjectURL(blob);
+
+//  // Update the state to reflect the new audio source
+//  setAudioSource(url);
 
 }
 
@@ -108,9 +161,10 @@ let prompt="";
           <div className="p-4 border rounded-md bg-white dark:bg-gray-800">
             <h2 className="text-lg font-medium text-gray-700 dark:text-gray-300">Audio Output</h2>
             <audio className="mt-2 w-full" controls>
-              <source src="/audio-file.mp3" type="audio/mpeg" />
+              <source src="http://localhost:5000/stream/male_odia_output.wav"  type="audio/wav" />
               Your browser does not support the audio element.
-            </audio>
+              </audio>
+
             <Button className="mt-2 bg-red-500 hover:bg-red-600 text-white">Download Audio</Button>
           </div>
         </div>
