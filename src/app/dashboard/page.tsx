@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+
 export default function Component() {
 
   const API_KEY="AIzaSyBU48uRkLp2Oz7tDU2aMa73g8BPE2-fjpo"
@@ -103,29 +104,20 @@ let prompt="";
   const text = response.text();
   const translatedText = await translateText(text);
   setTextData(translatedText);
-//   const responseFromFlask = await fetch('http://127.0.0.1:5000/process_form', {
-//     method: 'POST',
-//     headers: {
-//       'Content-Type': 'application/json',
-//     },
-//     body: JSON.stringify({
-//       sample_text: text,
-//       gender: 'male', // Replace 'male' with the actual gender
-//     }),
-//  });
 
- // Check if the request was successful
-//  if (!responseFromFlask.ok) {
-//     throw new Error(`HTTP error! status: ${responseFromFlask.status}`);
-//  }
 
- // Fetch the audio file
-//  const audioResponse = await fetch('http://127.0.0.1:5000/get_audio');
-//  const blob = await audioResponse.blob();
-//  const url = URL.createObjectURL(blob);
 
-//  // Update the state to reflect the new audio source
-//  setAudioSource(url);
+  await axios.post("http://localhost:5000/web-submit",{
+   body:{
+    "sample_text":text,
+    "gender":"male"
+   }
+  }).then((res:any) =>{
+    console.log(res)
+  })
+
+
+  
 
 }
 
@@ -161,7 +153,7 @@ let prompt="";
           <div className="p-4 border rounded-md bg-white dark:bg-gray-800">
             <h2 className="text-lg font-medium text-gray-700 dark:text-gray-300">Audio Output</h2>
             <audio className="mt-2 w-full" controls>
-              <source src="http://localhost:5000/stream/male_odia_output.wav"  type="audio/wav" />
+              <source src="/audio-file.mp3" type="audio/mpeg" />
               Your browser does not support the audio element.
               </audio>
 
