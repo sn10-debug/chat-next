@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import axios from 'axios';
 
 
 export default function Component() {
@@ -20,7 +21,7 @@ export default function Component() {
   let [readData, setReadData] = useState(null);
   let [summarizeData, setSummarizeData] = useState(null);
   let [textData, setTextData] = useState("The text output will be displayed here...");
-  let [audioSource, setAudioSource] = useState('');
+  let [audioSource, setAudioSource] = useState('http://localhost:5000/stream/male_odia_output.wav');
   
 
   const handleFileChange = (event:any) => {
@@ -109,11 +110,15 @@ let prompt="";
 
   await axios.post("http://localhost:5000/web-submit",{
    body:{
-    "sample_text":text,
+    "sample_text":translatedText,
     "gender":"male"
    }
-  }).then((res:any) =>{
+  }).then(async (res:any) =>{
+    await res;
     console.log(res)
+    console.log("Request Executed")
+    setAudioSource('http://localhost:5000/stream/male_odia_output.wav')
+    
   })
 
 
@@ -153,11 +158,12 @@ let prompt="";
           <div className="p-4 border rounded-md bg-white dark:bg-gray-800">
             <h2 className="text-lg font-medium text-gray-700 dark:text-gray-300">Audio Output</h2>
             <audio className="mt-2 w-full" controls>
-              <source src="/audio-file.mp3" type="audio/mpeg" />
+              <source src={audioSource} type="audio/mpeg" />
               Your browser does not support the audio element.
               </audio>
-
-            <Button className="mt-2 bg-red-500 hover:bg-red-600 text-white">Download Audio</Button>
+              <form method="get" action="http://localhost:5000/get_audio">
+              <input className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-2" type="submit" value="Get the Audio" />
+               </form>
           </div>
         </div>
       </main>
